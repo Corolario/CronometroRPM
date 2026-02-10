@@ -1,277 +1,49 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html>
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cronômetro Didático</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-
-        .container {
-            background: white;
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            text-align: center;
-            max-width: 500px;
-            width: 100%;
-        }
-
-        h1 {
-            color: #333;
-            margin-bottom: 30px;
-            font-size: 2em;
-        }
-
-        .display {
-            background: #f0f0f0;
-            padding: 30px;
-            border-radius: 15px;
-            margin-bottom: 30px;
-            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .time {
-            font-size: 3.5em;
-            font-weight: bold;
-            color: #667eea;
-            font-family: 'Courier New', monospace;
-            letter-spacing: 3px;
-        }
-
-        .controls {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        button {
-            padding: 15px 30px;
-            font-size: 1.1em;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-        }
-
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
-        }
-
-        button:active {
-            transform: translateY(0);
-        }
-
-        #btnIniciar {
-            background: #10b981;
-            color: white;
-        }
-
-        #btnIniciar:hover {
-            background: #059669;
-        }
-
-        #btnPausar {
-            background: #f59e0b;
-            color: white;
-        }
-
-        #btnPausar:hover {
-            background: #d97706;
-        }
-
-        #btnZerar {
-            background: #ef4444;
-            color: white;
-        }
-
-        #btnZerar:hover {
-            background: #dc2626;
-        }
-
-        .info {
-            margin-top: 30px;
-            padding: 20px;
-            background: #f9fafb;
-            border-radius: 10px;
-            border-left: 4px solid #667eea;
-        }
-
-        .info h3 {
-            color: #667eea;
-            margin-bottom: 10px;
-        }
-
-        .info p {
-            color: #666;
-            line-height: 1.6;
-            text-align: left;
-        }
-
-        .status {
-            margin-top: 15px;
-            font-size: 0.9em;
-            color: #666;
-        }
-    </style>
+  <style>
+    .center {
+      text-align: center;
+      font-size: 3rem;
+      width: 12rem;
+      border-radius: 1rem;
+      background-color: #09AA9D;
+    }
+  </style>
 </head>
 
 <body>
-    <div class="container">
-        <h1>⏱️ Cronômetro Didático</h1>
 
-        <div class="display">
-            <div class="time" id="display">00:00:00</div>
-        </div>
+  <input type="text" id="duracao" class="center" placeholder="00:00" maxlength="5" ;">
+<input id="voltas" type="number" min="1" value="1"> volta(s) completa(s) em {tempo} corresponde a {rpm} RPM.
+  <div class="controls">
+    <button id="btnIniciar">▶️ Iniciar</button>
+    <button id="btnPausar">⏸️ Pausar</button>
+    <button id="btnZerar">⏹️ Zerar</button>
+  </div>
 
-        <div class="controls">
-            <button id="btnIniciar">▶️ Iniciar</button>
-            <button id="btnPausar">⏸️ Pausar</button>
-            <button id="btnZerar">⏹️ Zerar</button>
-        </div>
+  <script>
+    document.getElementById('duracao').addEventListener('input', function (e) {
+      let value = e.target.value.replace(/\D/g, '');
+      let resultado = '';
 
-        <div class="status" id="status">Cronômetro parado</div>
-
-        <div class="info">
-            <h3>Como funciona:</h3>
-            <p>
-                • <strong>Iniciar:</strong> Usa setInterval() para atualizar o tempo a cada 10 milissegundos<br>
-                • <strong>Pausar:</strong> Usa clearInterval() para parar a contagem<br>
-                • <strong>Zerar:</strong> Reseta o contador para 00:00:00
-            </p>
-        </div>
-    </div>
-
-    <script>
-        // Variáveis globais do cronômetro
-        let intervalo = null;           // Armazena o ID do setInterval
-        let tempoDecorrido = 0;         // Tempo total em milissegundos
-        let cronometroAtivo = false;    // Indica se o cronômetro está rodando
-
-        // Elementos do DOM
-        const display = document.getElementById('display');
-        const btnIniciar = document.getElementById('btnIniciar');
-        const btnPausar = document.getElementById('btnPausar');
-        const btnZerar = document.getElementById('btnZerar');
-        const status = document.getElementById('status');
-
-        /**
-         * Função que formata o tempo em milissegundos para HH:MM:SS
-         * @param {number} ms - Tempo em milissegundos
-         * @returns {string} - Tempo formatado
-         */
-        function formatarTempo(ms) {
-            // Converter milissegundos para segundos, minutos e horas
-            let segundosTotais = Math.floor(ms / 1000);
-            let horas = Math.floor(segundosTotais / 3600);
-            let minutos = Math.floor((segundosTotais % 3600) / 60);
-            let segundos = segundosTotais % 60;
-
-            // Adicionar zero à esquerda se necessário (ex: 09 em vez de 9)
-            horas = horas.toString().padStart(2, '0');
-            minutos = minutos.toString().padStart(2, '0');
-            segundos = segundos.toString().padStart(2, '0');
-
-            return `${horas}:${minutos}:${segundos}`;
+      for (let i = 0; i < value.length && i < 4; i++) {
+        let digito = value[i];
+        if (i === 0 || i === 2) {
+          if (digito > '5') {
+            continue;
+          }
         }
-
-        /**
-         * Função que atualiza o display do cronômetro
-         * Esta função é chamada repetidamente pelo setInterval
-         */
-        function atualizarDisplay() {
-            // Incrementar o tempo decorrido em 10ms (frequência do setInterval)
-            tempoDecorrido += 10;
-
-            // Atualizar o texto no display
-            display.textContent = formatarTempo(tempoDecorrido);
+        resultado += digito;
+        if (i === 1 && value.length > 2) {
+          resultado += ':';
         }
+      }
+      e.target.value = resultado;
+    });
+  </script>
 
-        /**
-         * Função para iniciar o cronômetro
-         * Usa setInterval() para executar atualizarDisplay() a cada 10ms
-         */
-        function iniciar() {
-            // Verifica se o cronômetro já não está ativo
-            if (!cronometroAtivo) {
-                // setInterval retorna um ID que usamos para parar depois
-                // A função atualizarDisplay será chamada a cada 10 milissegundos
-                intervalo = setInterval(atualizarDisplay, 10);
-
-                cronometroAtivo = true;
-                status.textContent = '⏱️ Cronômetro rodando...';
-
-                console.log('✅ setInterval iniciado com ID:', intervalo);
-            }
-        }
-
-        /**
-         * Função para pausar o cronômetro
-         * Usa clearInterval() para parar a execução repetida
-         */
-        function pausar() {
-            // Verifica se há um intervalo ativo para pausar
-            if (cronometroAtivo) {
-                // clearInterval para a execução do setInterval
-                // Precisamos passar o ID que recebemos do setInterval
-                clearInterval(intervalo);
-
-                cronometroAtivo = false;
-                status.textContent = '⏸️ Cronômetro pausado';
-
-                console.log('⏸️ clearInterval executado. Intervalo parado.');
-            }
-        }
-
-        /**
-         * Função para zerar o cronômetro
-         * Para o intervalo e reseta todas as variáveis
-         */
-        function zerar() {
-            // Para o cronômetro se estiver rodando
-            if (cronometroAtivo) {
-                clearInterval(intervalo);
-                cronometroAtivo = false;
-            }
-
-            // Reseta o tempo para zero
-            tempoDecorrido = 0;
-
-            // Atualiza o display para mostrar 00:00:00
-            display.textContent = formatarTempo(tempoDecorrido);
-            status.textContent = '⏹️ Cronômetro zerado';
-
-            console.log('🔄 Cronômetro zerado.');
-        }
-
-        // Adicionar eventos de clique aos botões
-        btnIniciar.addEventListener('click', iniciar);
-        btnPausar.addEventListener('click', pausar);
-        btnZerar.addEventListener('click', zerar);
-
-        // Log inicial para fins didáticos
-        console.log('📚 Cronômetro Didático carregado!');
-        console.log('Abra o console do navegador (F12) para ver os logs das funções.');
-    </script>
 </body>
 
 </html>
