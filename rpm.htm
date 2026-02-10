@@ -129,7 +129,8 @@
     // --- Calcular RPM ---
     function calcRpm(tempoSegundos, numVoltas) {
       if (tempoSegundos <= 0 || numVoltas <= 0) return '--';
-      const rpm = 60 / (numVoltas * tempoSegundos);
+      const tempoMinutos = tempoSegundos / 60;
+      const rpm = numVoltas / tempoMinutos;
       return rpm.toFixed(2);
     }
 
